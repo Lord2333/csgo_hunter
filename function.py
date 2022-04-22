@@ -2,7 +2,6 @@ import requests
 import json
 import re
 from bs4 import BeautifulSoup as bs
-from flask import render_template
 
 
 def get_uu(good_id):
@@ -53,9 +52,16 @@ def get_buff(url):
 	info = soup.find('div', class_='title-info-wrapper')
 	name = info.find('h3').text
 	Ps = info.find_all('p')
-	muban = Ps[0].text
-	bianhao = Ps[1].text
-	mosun = Ps[2].text
+	biaoqian = info.find('p', class_='name_tag')
+	if biaoqian == None:
+		muban = Ps[0].text
+		bianhao = Ps[1].text
+		mosun = Ps[2].text
+	else:
+		biaoqian = biaoqian.text
+		muban = Ps[1].text
+		bianhao = Ps[2].text
+		mosun = Ps[3].text
 	data = {
 		'name': name,
 		'muban': muban,
@@ -63,6 +69,7 @@ def get_buff(url):
 		'mosun': mosun,
 		'price': price,
 		'img': img,
+		'biaoqian': biaoqian
 	}
 	return data
 

@@ -23,8 +23,9 @@ def add_skin():
 			"update_time": creat_time,
 			"creat_time": creat_time,
 			"isSold": 0,
+			"name":content['name']
 		})
-		return render_template('result.html', **content)
+		return render_template('result.html', **content, bq=content['biaoqian'])
 	else:
 		return render_template('index.html')
 
