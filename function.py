@@ -5,10 +5,10 @@ import json
 import re
 from bs4 import BeautifulSoup as bs
 
-Skey = 'Skey'
+Skey = 'Skey'  # 这里填写Server酱的SendKey
 Send_url = 'https://sctapi.ftqq.com/' + Skey + '.send'
 global deta_key
-deta_key = 'deta_key'
+deta_key = 'deta_key'  # 这里填写deta的ProjectKey
 
 
 def main_run():
@@ -32,9 +32,7 @@ def main_run():
 			"name": row['name']
 		}
 		db.put(Data, key=row['key'])
-	List = json.loads(Get_list())['data']
-	for content in List:
-		Wx_push(content)
+		Wx_push(Data)
 
 
 def get_uu(url):
