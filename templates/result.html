@@ -1,23 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.6.8/dist/css/layui.css">
     <meta charset="UTF-8">
     <title>添加成功</title>
 </head>
 <body>
-    <img src={{img}} width='35%'/>
-    <div>
-        <h2>{{name}}</h2>
-        {% if bq %}
-        <h2>{{biaoqian}}</h2>
-        {% endif%}
-        <hr>
-        <span>
-            {{muban}}<br>
-            {{bianhao}}<br>
-            {{mosun}}<br>
-            <h3>当前售价：{{price}}</h3>
-        </span>
+    <div class="layui-fluid layui-row">
+        <div class="layui-col-lg2 layui-col-xs12" style="margin: 0 auto;">
+            <img src={{img}} width='100%'/>
+        </div>
+        <div class="layui-col-lg6 layui-col-xs12">
+            <h2>{{name}}</h2>
+        </div>
+        <div class="layui-col-lg6 layui-col-xs12">
+            {% if bq %}
+            <h2>{{biaoqian}}</h2>
+            {% endif%}
+        </div>
+        <div class="layui-col-lg6 layui-col-xs12">
+            <span>
+                {{muban}}<br>
+                {{bianhao}}<br>
+                {{mosun}}<br>
+                当前售价：<b style="color: red">￥{{price}}</b>
+            </span>
+        </div>
+        <div class="layui-col-lg6 layui-col-xs12">
+            <form class="layui-form" action="" method="get">
+                <input class="layui-btn layui-btn-normal" style="margin-top: 5px;border-radius: 5px" type="submit" value="返回主页">
+            </form>
+        </div>
     </div>
 </body>
 </html>

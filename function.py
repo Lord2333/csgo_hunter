@@ -1,44 +1,18 @@
+import time
+from deta import Deta
 import requests
 import json
 import re
 from bs4 import BeautifulSoup as bs
 
+Skey = 'Skey'
+Send_url = 'https://sctapi.ftqq.com/' + Skey + '.send'
+global deta_key
+deta_key = 'deta_key'
+
 
 def get_uu(good_id):
-	UU_header = {
-		'content-type': 'application/json;charset=UTF-8',
-		'origin': 'https://www.youpin898.com',
-		'referer': 'https://www.youpin898.com/goodInfo?id=' + good_id,
-		'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36',
-	}
-	API = 'https://api.youpin898.com/api/homepage/es/commodity/GetCsGoPagedList'
-	data = {
-		"templateId": good_id,
-		"pageSize": 30,
-		"pageIndex": 1,
-		"sortType": 0,
-		"listSortType": 4,
-		"listType": 30
-	}
-	res = requests.post(API, json=data, headers=UU_header).text
-	res_json = json.loads(res)
-	List_0 = res_json['Data']['CommodityList'][0]
-	name = List_0['CommodityName']
-	mosun = List_0['Abrade']
-	yajin = List_0['LeaseDeposit']
-	maxday = List_0['LeaseMaxDays']
-	duan = List_0['LeaseUnitPrice']
-	chang = List_0['LongLeaseUnitPrice']
-	dataset = {
-		'Market': 'YYYP',
-		'Good': name,
-		'Mosun': mosun,
-		'Yajin': yajin,
-		'Maxday': maxday,
-		'Duanzu': duan,
-		'Changzu': chang
-	}
-	return dataset
+	return 1
 
 
 def get_buff(url):
@@ -63,38 +37,152 @@ def get_buff(url):
 		bianhao = Ps[2].text
 		mosun = Ps[3].text
 	data = {
-		'name': name,
-		'muban': muban,
-		'bianhao': bianhao,
-		'mosun': mosun,
-		'price': price,
-		'img': img,
-		'biaoqian': biaoqian
+		"name": name,
+		"muban": muban,
+		"bianhao": bianhao,
+		"mosun": mosun,
+		"price": price,
+		"img": img,
+		"biaoqian": biaoqian
 	}
 	return data
 
 
 def get_ig(url):
-	print(url)
+	return 1
+
+
+def Put_data(url, content, deta_key, m):
+	deta = Deta(deta_key)
+	db = deta.Base('Skin_DB')
+	creat_time = time.time()
+	Data = {
+		"market": m,
+		"url": url,
+		"price_on_mark": content['price'],
+		"now_price": content['price'],
+		"update_time": creat_time,
+		"creat_time": creat_time,
+		"isSold": 0,
+		"name": content['name']
+	}
+	db.put(Data)
 
 
 def DealUrl(url):
-	site = re.findall(r'\.(.*)\.c', url)[0]
-	if site == '163':
-		return get_buff(url)
-	elif site == 'igxe':
-		return get_ig(url)
-	elif site == 'youpin898':
-		return get_uu(url)
+	try:
+		site = re.findall(r'\.(.*)\.c', url)[0]
+		if site == '163':
+			content = get_buff(url)
+			Put_data(url, content, deta_key, '8F')
+			return content
+		elif site == 'igxe':
+			content = get_ig(url)
+			Put_data(url, content, deta_key, 'IG')
+			return content
+		elif site == 'youpin898':
+			content = get_uu(url)
+			Put_data(url, content, deta_key, 'UU')
+			return content
+		else:
+			return None
+	except IndexError:
+		return None
+
+
+def Get_list():
+	deta = Deta(deta_key)
+	db = deta.Base('Skin_DB')
+	res = db.fetch()
+	all_items = res.items
+	resp = {
+		"code": 0,
+		"data": 0
+	}
+	while res.last:
+		res = db.fetch(last=res.last)
+		all_items += res.items
+	resp["data"] = all_items
+	return json.dumps(obj=resp)
+
+
+def Wx_push(content):
+	if not content['isSold']:
+		sold = '在售'
+		bian = float(content['price_on_mark']) - float(content['now_price'])
+		if bian < 0:
+			Info = '饰品:' + content['name'] + ' ' + sold+'\n平台：' + content['market'] + '\n比收藏时跌了{:.2f}元。\n火速购买，不要让等待成为遗憾！\n直达链接：[8F]('.format(-bian) + content['url'] + ')'
+			requests.post(Send_url, {
+				'title': '王守義拾叁香饰品监控',
+				'desp': Info
+			})
+		elif bian > 0:
+			Info = '饰品:' + content['name'] + ' ' + sold+'\n平台：' + content['market'] + '\n比收藏时涨了{:.2f}元。\n疑似倒狗入场提价，请谨慎购买！'.format(bian)
+			requests.post(Send_url, {
+				'title': '王守義拾叁香饰品监控',
+				'desp': Info
+			})
 	else:
-		return '<h1>无法找到该饰品</h1>'
+		sold = '已出售或下架'
+		Info = '饰品:' + content['name'] + ' ' + sold
+		requests.post(Send_url, {
+			'title': '王守義拾叁香饰品监控',
+			'desp': Info
+		})
+	print('已处理')
+
+
+def GetUrlPrice(url):
+	try:
+		site = re.findall(r'\.(.*)\.c', url)[0]
+		if site == '163':
+			content = get_buff(url)
+			return content
+		elif site == 'igxe':
+			content = get_ig(url)
+			return content
+		elif site == 'youpin898':
+			content = get_uu(url)
+			return content
+		else:
+			return None
+	except IndexError:
+		return None
+
+
+# @app.lib.cron()
+# def cron_task(event):
+# 	deta = Deta(deta_key)
+# 	db = deta.Base('Skin_DB')
+# 	List = Get_list()['data']
+# 	url_list = []
+# 	for row in List:
+# 		url_list.append([row['key'], row['price_on_mark'], row['now_price'], row['url']])
+# 	for item in url_list:
+# 		Data = GetUrlPrice(item['url'])
+# 		if not Data['isSold']:
+# 			now_price = Data['price']
 
 
 if __name__ == '__main__':
-	url1 = 'https://buff.163.com/market/m/item_detail?classid=4428828851&instanceid=188530139&game=csgo&assetid=25440222281&sell_order_id=220422T1799485665'
-	url2 = 'https://h5.youpin898.com/goodsInfo.html?id=4956638'  # 已出售
-	url2_2 = 'https://h5.youpin898.com/goodsInfo.html?id=4747732'  # 未出售
-	url3 = 'https://www.igxe.cn/share/trade/254436254?app_id=730'
-	DealUrl(url1)
-# DealUrl(url2)
-# DealUrl(url3)
+	List = json.loads(Get_list())['data']
+	deta = Deta(deta_key)
+	db = deta.Base('Skin_DB')
+	for row in List:
+		skin_url = row['url']
+		now_price = GetUrlPrice(skin_url)['price']
+		up_time = time.time()
+		Data = {
+			"market": row['market'],
+			"url": skin_url,
+			"price_on_mark": row['price_on_mark'],
+			"now_price": now_price,
+			"update_time": up_time,
+			"creat_time": row['creat_time'],
+			"isSold": 0,
+			"name": row['name']
+		}
+		db.put(Data, key=row['key'])
+	List = json.loads(Get_list())['data']
+	for content in List:
+		Wx_push(content)

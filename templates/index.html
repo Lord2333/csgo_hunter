@@ -1,31 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/layui@2.6.8/dist/css/layui.css">
     <meta charset="UTF-8">
     <title>王守義拾叁香价格监控</title>
 </head>
 <body>
-<form action="" method="post">
-    <table>
-        <tbody>
-            <tr>
-                <td>分享链接:</td>
-                <td><input type="text" name="url"></td>
-                <td><input type="submit" value="提交"></td>
-            </tr>
-        </tbody>
-    </table>
-</form>
-<h3>仅支持8f、uuyp以及ig这三个平台</h3>
-    <p>使用说明：<br>
-        在手机APP进入要监控的饰品详情页面，点击分享按钮；点击<b>复制</b>按钮(ig平台
-        需点击<b>复制链接</b>按钮，再点复制)，将饰品分享链接填入上方文本框，
-        点击<b>提交</b>，出现饰品信息页面即可。<br>如wx信息推送失败，请进入源码
-        <b>function.py</b>，找到<b>Skey</b>行查看Server酱API是否填写正确，
-        Server酱官网：<a href="https://sct.ftqq.com/login">sct.ftqq.com</a><br>
-        更多问题请在GitHub提交Issue，看到了都会回复的。
-    </p>
-    <p>源码更新地址：<a href="https://github.com/Lord2333/csgo_hunter">GitHub</a></p>
-    <p>Powered By Flask.<br><b>人生苦短，我用Py</b></p>
+    <div class="layui-fluid layui-row">
+        <div class="layui-form-item" style="margin:0 auto;text-align:center">
+            <form class="layui-form" action="" method="post">
+                <div class='layui-row  layui-col-space10' style="margin-top: 10px;align-items: baseline;">
+                    <div class="layui-col-xs3 layui-col-lg1">
+                        <label class="layui-form-label">分享链接：</label>
+                    </div>
+                    <div class="layui-col-xs6 layui-col-lg6">
+                        <input class="layui-input" type="text" name="url" style="border-radius: 5px;">
+                    </div>
+                    <div class="layui-col-xs1 layui-col-lg1">
+                        <input class="layui-btn layui-btn-normal" style="border-radius: 5px;" type="submit" value="提交">
+                    </div>
+                </div>
+            </form>
+        </div>
+    <fieldset class="layui-elem-field layui-field-title" align="center">
+        <legend>仅支持8f、uuyp以及ig这三个平台</legend>
+    </fieldset>
+        <p><b>使用说明：</b><br>
+            在手机APP进入要监控的饰品详情页面，点击分享按钮；点击<b>复制</b>按钮(ig平台
+            需点击<b>复制链接</b>按钮，再点复制)，将饰品分享链接填入上方文本框，
+            点击<b>提交</b>，出现饰品信息页面即可。<br><del>注意：8f的分享链接最前面有
+            中文文字，记得删除再点击提交按钮</del><br>如wx信息推送失败，请进入源码
+            <b>function.py</b>，找到<b>Skey</b>行查看Server酱API是否填写正确，
+            Server酱官网：<a href="https://sct.ftqq.com/login" style="color: #00A5ED">sct.ftqq.com</a><br>
+            更多问题请在GitHub提交Issue，看到了都会回复的。
+        </p>
+        <p>项目地址：<a href="https://github.com/Lord2333/csgo_hunter" style="color: #00A5ED">GitHub</a></p>
+        <p>Powered By Flask.<b>人生苦短，我用Py</b>
+        </p>
+        <form class="layui-form" action="" method="post">
+                <input class="layui-btn layui-btn-normal" style="margin-top: 5px;border-radius: 5px" type="submit" value="查看已监控皮肤">
+        </form>
+    </div>
 </body>
 </html>
