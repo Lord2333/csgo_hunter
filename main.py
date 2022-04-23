@@ -1,8 +1,14 @@
 import time
 from flask import Flask, request, render_template
 import function as Fun
+from deta import App
 
-app = Flask(__name__)
+app = App(Flask(__name__))
+
+
+@app.lib.cron()
+def cron_job(event):
+	Fun.main_run()
 
 
 @app.route('/', methods=["POST", "GET"])
@@ -23,9 +29,11 @@ def add_skin():
 	else:
 		return render_template('index.html')
 
+
 @app.route('/watch', methods=["GET"])
 def wacth_skin():
 	return Fun.Get_list()
+
 
 if __name__ == '__main__':
 	app.run(host='127.0.0.1', port=8848)

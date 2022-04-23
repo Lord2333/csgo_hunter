@@ -11,8 +11,47 @@ global deta_key
 deta_key = 'deta_key'
 
 
-def get_uu(good_id):
-	return 1
+def main_run():
+	List = json.loads(Get_list())['data']
+	deta = Deta(deta_key)
+	db = deta.Base('Skin_DB')
+	for row in List:
+		skin_url = row['url']
+		now_price = GetUrlPrice(skin_url)['price']
+		if now_price == row['now_price']:
+			continue
+		up_time = time.time()
+		Data = {
+			"market": row['market'],
+			"url": skin_url,
+			"price_on_mark": row['price_on_mark'],
+			"now_price": now_price,
+			"update_time": up_time,
+			"creat_time": row['creat_time'],
+			"isSold": 0,
+			"name": row['name']
+		}
+		db.put(Data, key=row['key'])
+	List = json.loads(Get_list())['data']
+	for content in List:
+		Wx_push(content)
+
+
+def get_uu(url):
+	good_id = re.findall(r'=(.*)', url)[0]
+	API = 'https://h5.youpin898.com/api/commodity/Commodity/Detail?Id=' + str(good_id)
+	res = requests.get(API).json()
+	res = res["Data"]
+	data = {
+		"name": res['CommodityName'],
+		"biaoqian": res['NameTags'][0],
+		"muban": "图案模版(paint seed): " + str(res['PaintSeed']),
+		"bianhao": "皮肤编号(paint index):" + str(res['PaintIndex']),
+		"mosun": res['Abrade'],
+		"price": res['Price'],
+		"img": 'https://youpin.img898.com/' + res['Images'].split(',')[0]
+	}
+	return data
 
 
 def get_buff(url):
@@ -49,7 +88,24 @@ def get_buff(url):
 
 
 def get_ig(url):
-	return 1
+	good_id = re.findall(r'trade/(.*)\?', url)[0]
+	API = 'https://www.igxe.cn/app-h5/data/730/' + good_id + '?type=1'
+	res = requests.get(API).json()['data']
+	biaoqian = res['fraudwarnings']
+	if biaoqian:
+		biaoqian = biaoqian[0]
+	else:
+		biaoqian = None
+	data = {
+		"name": res['market_name'],
+		"biaoqian": biaoqian,
+		"muban": "图案模版(paint seed): " + str(res['paint_seed']),
+		"bianhao": "皮肤编号(paint index):" + str(res['paint_index']),
+		"mosun": res['wear'],
+		"price": res['unit_price'],
+		"img": res['inspect_img_large']
+	}
+	return data
 
 
 def Put_data(url, content, deta_key, m):
@@ -110,14 +166,16 @@ def Wx_push(content):
 	if not content['isSold']:
 		sold = '在售'
 		bian = float(content['price_on_mark']) - float(content['now_price'])
-		if bian < 0:
-			Info = '饰品:' + content['name'] + ' ' + sold+'\n平台：' + content['market'] + '\n比收藏时跌了{:.2f}元。\n火速购买，不要让等待成为遗憾！\n直达链接：[8F]('.format(-bian) + content['url'] + ')'
+		if bian > 0:
+			Info = '饰品:' + content['name'] + ' ' + sold + '\n\n平台：' + content[
+				'market'] + '\n\n比收藏时跌了{:.2f}元。\n\n火速购买，不要让等待成为遗憾！\n\n直达链接：[8F]('.format(bian) + content['url'] + ')'
 			requests.post(Send_url, {
 				'title': '王守義拾叁香饰品监控',
 				'desp': Info
 			})
-		elif bian > 0:
-			Info = '饰品:' + content['name'] + ' ' + sold+'\n平台：' + content['market'] + '\n比收藏时涨了{:.2f}元。\n疑似倒狗入场提价，请谨慎购买！'.format(bian)
+		elif bian < 0:
+			Info = '饰品:' + content['name'] + ' ' + sold + '\n\n平台：' + content[
+				'market'] + '\n\n比收藏时涨了{:.2f}元。\n\n饰品有分享，请谨慎购买！'.format(bian)
 			requests.post(Send_url, {
 				'title': '王守義拾叁香饰品监控',
 				'desp': Info
@@ -150,39 +208,6 @@ def GetUrlPrice(url):
 		return None
 
 
-# @app.lib.cron()
-# def cron_task(event):
-# 	deta = Deta(deta_key)
-# 	db = deta.Base('Skin_DB')
-# 	List = Get_list()['data']
-# 	url_list = []
-# 	for row in List:
-# 		url_list.append([row['key'], row['price_on_mark'], row['now_price'], row['url']])
-# 	for item in url_list:
-# 		Data = GetUrlPrice(item['url'])
-# 		if not Data['isSold']:
-# 			now_price = Data['price']
-
-
 if __name__ == '__main__':
-	List = json.loads(Get_list())['data']
-	deta = Deta(deta_key)
-	db = deta.Base('Skin_DB')
-	for row in List:
-		skin_url = row['url']
-		now_price = GetUrlPrice(skin_url)['price']
-		up_time = time.time()
-		Data = {
-			"market": row['market'],
-			"url": skin_url,
-			"price_on_mark": row['price_on_mark'],
-			"now_price": now_price,
-			"update_time": up_time,
-			"creat_time": row['creat_time'],
-			"isSold": 0,
-			"name": row['name']
-		}
-		db.put(Data, key=row['key'])
-	List = json.loads(Get_list())['data']
-	for content in List:
-		Wx_push(content)
+	url = 'https://www.igxe.cn/share/trade/254436254?app_id=730'
+	print(get_ig(url))
